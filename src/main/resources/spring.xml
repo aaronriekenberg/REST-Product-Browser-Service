@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://cxf.apache.org/jaxrs
+		http://cxf.apache.org/schemas/jaxrs.xsd
+		http://www.springframework.org/schema/data/mongo
+        http://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
+
+	<!-- CXF configuration -->
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+
+	<jaxrs:server
+		id="productBrowserServer"
+		address="http://0.0.0.0:8080/">
+
+		<jaxrs:serviceBeans>
+			<ref bean="productDetailsService" />
+		</jaxrs:serviceBeans>
+
+		<!-- Use Jackson to automatically convert ProductDetails to JSON -->
+		<jaxrs:providers>
+			<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider" />
+		</jaxrs:providers>
+
+	</jaxrs:server>
+
+	<!-- Service bean -->
+	<bean
+		id="productDetailsService"
+		class="org.aaron.product.browser.services.ProductDetailsService"
+		c:productDetailsRepository-ref="productDetailsRepository" />
+
+	<!-- Bean used to populate dummy data in the database at startup -->
+	<bean
+		id="populateProducts"
+		class="org.aaron.product.browser.PopulateProducts"
+		c:productDetailsRepository-ref="productDetailsRepository" />
+
+	<!-- Mongo configuration -->
+	<mongo:mongo
+		id="mongo"
+		host="localhost"
+		port="27017" />
+
+	<bean
+		id="mongoTemplate"
+		class="org.springframework.data.mongodb.core.MongoTemplate"
+		c:mongo-ref="mongo"
+		c:databaseName="productBrowser" />
+
+	<!-- Automatically create mongo repositories -->
+	<mongo:repositories base-package="org.aaron.product.browser.repositories" />
+
+</beans>
